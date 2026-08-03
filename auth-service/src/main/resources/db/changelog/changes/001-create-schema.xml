@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Create roles table if not exists -->
+    <changeSet id="1" author="leonardoN">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="as_roles"/>
+            </not>
+        </preConditions>
+        <createTable tableName="as_roles">
+            <column name="role_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Create users table if not exists -->
+    <changeSet id="2" author="leonardoN">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="as_users"/>
+            </not>
+        </preConditions>
+        <createTable tableName="as_users">
+            <column name="user_id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(180)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Create user_roles table if not exists -->
+    <changeSet id="3" author="leonardoN">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="as_user_roles"/>
+            </not>
+        </preConditions>
+        <createTable tableName="as_user_roles">
+            <column name="user_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="as_user_roles" columnNames="user_id, role_id" constraintName="pk_user_roles"/>
+        <addForeignKeyConstraint baseTableName="as_user_roles"
+                                 baseColumnNames="user_id"
+                                 constraintName="fk_user_roles_user"
+                                 referencedTableName="as_users"
+                                 referencedColumnNames="user_id"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="as_user_roles"
+                                 baseColumnNames="role_id"
+                                 constraintName="fk_user_roles_role"
+                                 referencedTableName="as_roles"
+                                 referencedColumnNames="role_id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

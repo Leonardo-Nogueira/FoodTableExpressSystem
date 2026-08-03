@@ -26,16 +26,18 @@ import org.springframework.beans.factory.annotation.Value;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("{jwt.public-key}")
+    @Value("${jwt.public-key}")
     private RSAPublicKey publicKey;
 
-    @Value("{jwt.public-key}")
+    @Value("${jwt.private-key}")
     private RSAPrivateKey privateKey;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+        http.authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/token", "/register", "/actuator/**").permitAll()
+                        .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable())
                 .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

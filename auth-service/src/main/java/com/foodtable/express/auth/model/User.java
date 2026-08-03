@@ -5,9 +5,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -19,17 +22,21 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "users")
+@Table(name = "as_users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     private UUID userId;
 
+    @Column(nullable = false, length = 100)
     private String userName;
 
+    @Column(nullable = false, unique = true, length = 180)
     private String email;
 
+    @Column(nullable = false, length = 255)
     private String password;
 
     @CreationTimestamp
@@ -39,8 +46,22 @@ public class User {
     private LocalDateTime updatedAt;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @JoinTable(name = "as_user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
+
+    public User() {
+    }
+
+    public static User createUser(String userName, String email, String password, Set<Role> roles) {
+        return new User(userName, email, password, roles);
+    }
+
+    public User(String userName, String email, String password, Set<Role> roles) {
+        this.userName = userName;
+        this.email = email;
+        this.password = password;
+        this.roles = roles;
+    }
 
     public UUID getUserId() {
         return userId;

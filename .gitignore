@@ -1,0 +1,21 @@
+# Maven target directories
+target/
+**/target/
+
+# IDE files
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# Sensitive key files (JWT Asymmetric Private Keys & temporary PEMs)
+*.pem
+*.key
+**/src/main/resources/app.pem
+**/src/main/resources/app.key

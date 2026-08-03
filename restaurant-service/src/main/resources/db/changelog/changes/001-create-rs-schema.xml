@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- Create rs_restaurants table if not exists -->
+    <changeSet id="1" author="leonardoN">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="rs_restaurants"/>
+            </not>
+        </preConditions>
+        <createTable tableName="rs_restaurants">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(150)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="address" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="opening_time" type="TIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="closing_time" type="TIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Create rs_restaurant_tables table if not exists -->
+    <changeSet id="2" author="leonardoN">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="rs_restaurant_tables"/>
+            </not>
+        </preConditions>
+        <createTable tableName="rs_restaurant_tables">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="restaurant_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="label" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="capacity" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="rs_restaurant_tables"
+                                 baseColumnNames="restaurant_id"
+                                 constraintName="fk_tables_restaurant"
+                                 referencedTableName="rs_restaurants"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Create rs_menu_items table if not exists -->
+    <changeSet id="3" author="leonardoN">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="rs_menu_items"/>
+            </not>
+        </preConditions>
+        <createTable tableName="rs_menu_items">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="restaurant_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(150)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="price" type="DECIMAL(10, 2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="rs_menu_items"
+                                 baseColumnNames="restaurant_id"
+                                 constraintName="fk_menu_restaurant"
+                                 referencedTableName="rs_restaurants"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>
