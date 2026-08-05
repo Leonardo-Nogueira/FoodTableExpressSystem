@@ -8,6 +8,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
+import org.springframework.data.domain.AbstractAggregateRoot;
+
+import com.foodtable.express.restaurant.event.RestaurantDeactivatedEvent;
+import com.foodtable.express.restaurant.exception.InactiveRestaurantException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,7 +24,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "rs_restaurants")
-public class Restaurant {
+public class Restaurant extends AbstractAggregateRoot<Restaurant> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -55,12 +59,51 @@ public class Restaurant {
     public Restaurant() {
     }
 
-    public Restaurant(String name, String address, LocalTime openingTime, LocalTime closingTime, RestaurantStatus status) {
+    private Restaurant(String name, String address, LocalTime openingTime, LocalTime closingTime) {
         this.name = name;
         this.address = address;
         this.openingTime = openingTime;
         this.closingTime = closingTime;
-        this.status = status;
+        this.status = RestaurantStatus.ACTIVE;
+    }
+
+    public static Restaurant createRestaurant(String name, String address, LocalTime openingTime,
+            LocalTime closingTime) {
+        return new Restaurant(name, address, openingTime, closingTime);
+    }
+
+    public static Restaurant createRestaurant(String name, String address, LocalTime openingTime,
+            LocalTime closingTime, RestaurantStatus status) {
+        Restaurant restaurant = new Restaurant(name, address, openingTime, closingTime);
+        restaurant.status = status;
+        return restaurant;
+    }
+
+    public void updateDetails(String name, String address, LocalTime openingTime, LocalTime closingTime) {
+        if (isInactive()) {
+            throw new InactiveRestaurantException("Cannot update an inactive restaurant");
+        }
+        this.name = name;
+        this.address = address;
+        this.openingTime = openingTime;
+        this.closingTime = closingTime;
+    }
+
+    public void deactivate() {
+        if (isInactive()) {
+            return;
+        }
+        this.status = RestaurantStatus.INACTIVE;
+
+        registerEvent(new RestaurantDeactivatedEvent(this.id));
+    }
+
+    public boolean isActive() {
+        return this.status == RestaurantStatus.ACTIVE;
+    }
+
+    public boolean isInactive() {
+        return this.status == RestaurantStatus.INACTIVE;
     }
 
     // Getters and Setters
@@ -68,6 +111,7 @@ public class Restaurant {
         return id;
     }
 
+    // Needed for tests or manual id assignment
     public void setId(UUID id) {
         this.id = id;
     }
@@ -76,55 +120,27 @@ public class Restaurant {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getAddress() {
         return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public LocalTime getOpeningTime() {
         return openingTime;
     }
 
-    public void setOpeningTime(LocalTime openingTime) {
-        this.openingTime = openingTime;
-    }
-
     public LocalTime getClosingTime() {
         return closingTime;
-    }
-
-    public void setClosingTime(LocalTime closingTime) {
-        this.closingTime = closingTime;
     }
 
     public RestaurantStatus getStatus() {
         return status;
     }
 
-    public void setStatus(RestaurantStatus status) {
-        this.status = status;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.foodtable.express.restaurant.dto.RestaurantTableRequest;
 import com.foodtable.express.restaurant.dto.RestaurantTableResponse;
-import com.foodtable.express.restaurant.service.RestaurantTableService;
+import com.foodtable.express.restaurant.table.delegate.TableControllerDelegate;
 
 import jakarta.validation.Valid;
 
@@ -24,23 +24,25 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/restaurants/{id}/tables")
 public class TableController {
 
-    private final RestaurantTableService tableService;
+    private final TableControllerDelegate delegate;
 
-    public TableController(RestaurantTableService tableService) {
-        this.tableService = tableService;
+    public TableController(TableControllerDelegate delegate) {
+        this.delegate = delegate;
     }
 
     @PostMapping
     public ResponseEntity<RestaurantTableResponse> create(
             @PathVariable("id") UUID restaurantId,
             @Valid @RequestBody RestaurantTableRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(tableService.create(restaurantId, request));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(delegate.create(restaurantId, request));
     }
 
     @GetMapping
     public ResponseEntity<List<RestaurantTableResponse>> listActive(
             @PathVariable("id") UUID restaurantId) {
-        return ResponseEntity.ok(tableService.listActiveByRestaurant(restaurantId));
+
+        return ResponseEntity.ok(delegate.listActive(restaurantId));
     }
 
     @PutMapping("/{tableId}")
@@ -48,14 +50,16 @@ public class TableController {
             @PathVariable("id") UUID restaurantId,
             @PathVariable("tableId") UUID tableId,
             @Valid @RequestBody RestaurantTableRequest request) {
-        return ResponseEntity.ok(tableService.update(restaurantId, tableId, request));
+
+        return ResponseEntity.ok(delegate.update(restaurantId, tableId, request));
     }
 
     @DeleteMapping("/{tableId}")
     public ResponseEntity<Void> delete(
             @PathVariable("id") UUID restaurantId,
             @PathVariable("tableId") UUID tableId) {
-        tableService.delete(restaurantId, tableId);
+
+        delegate.delete(restaurantId, tableId);
         return ResponseEntity.noContent().build();
     }
 }

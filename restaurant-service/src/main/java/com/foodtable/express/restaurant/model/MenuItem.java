@@ -6,6 +6,9 @@ import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.foodtable.express.restaurant.exception.BusinessException;
+import com.foodtable.express.restaurant.exception.InactiveRestaurantException;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -48,15 +51,56 @@ public class MenuItem {
     public MenuItem() {
     }
 
-    public MenuItem(Restaurant restaurant, String name, String description, BigDecimal price, MenuItemStatus status) {
+    private MenuItem(Restaurant restaurant, String name, String description, BigDecimal price) {
+        if (restaurant == null) {
+            throw new BusinessException("Restaurant cannot be null");
+        }
+        if (restaurant.isInactive()) {
+            throw new InactiveRestaurantException("Cannot add a menu item to an inactive restaurant");
+        }
         this.restaurant = restaurant;
         this.name = name;
         this.description = description;
         this.price = price;
-        this.status = status;
+        this.status = MenuItemStatus.AVAILABLE;
     }
 
-    // Getters and Setters
+    public static MenuItem createMenuItem(Restaurant restaurant, String name, String description, BigDecimal price) {
+        return new MenuItem(restaurant, name, description, price);
+    }
+
+    // Business Methods
+    public void updateDetails(UUID restaurantId, String name, String description, BigDecimal price) {
+        if (!this.restaurant.getId().equals(restaurantId)) {
+            throw new BusinessException("Menu item does not belong to this restaurant");
+        }
+
+        if (isUnavailable() || this.restaurant.isInactive()) {
+            throw new BusinessException("Cannot update an unavailable menu item or item of an inactive restaurant");
+        }
+
+        this.name = name;
+        this.description = description;
+        this.price = price;
+    }
+
+    public void deactivate(UUID restaurantId) {
+        if (!this.restaurant.getId().equals(restaurantId)) {
+            throw new BusinessException("Menu item does not belong to this restaurant");
+        }
+
+        this.status = MenuItemStatus.UNAVAILABLE;
+    }
+
+    public boolean isAvailable() {
+        return this.status == MenuItemStatus.AVAILABLE;
+    }
+
+    public boolean isUnavailable() {
+        return this.status == MenuItemStatus.UNAVAILABLE;
+    }
+
+    // Getters
     public UUID getId() {
         return id;
     }
@@ -69,38 +113,23 @@ public class MenuItem {
         return restaurant;
     }
 
-    public void setRestaurant(Restaurant restaurant) {
-        this.restaurant = restaurant;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public BigDecimal getPrice() {
         return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
     }
 
     public MenuItemStatus getStatus() {
         return status;
     }
 
+    // Setter for status needed for the Deactivation Listener or test mappings
     public void setStatus(MenuItemStatus status) {
         this.status = status;
     }

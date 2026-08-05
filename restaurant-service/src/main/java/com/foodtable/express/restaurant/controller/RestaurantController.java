@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.foodtable.express.restaurant.dto.RestaurantRequest;
 import com.foodtable.express.restaurant.dto.RestaurantResponse;
-import com.foodtable.express.restaurant.service.RestaurantService;
+import com.foodtable.express.restaurant.restaurant.delegate.RestaurantControllerDelegate;
 
 import jakarta.validation.Valid;
 
@@ -27,39 +27,41 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
 
-    private final RestaurantService restaurantService;
+    private final RestaurantControllerDelegate delegate;
 
-    public RestaurantController(RestaurantService restaurantService) {
-        this.restaurantService = restaurantService;
+    public RestaurantController(RestaurantControllerDelegate delegate) {
+        this.delegate = delegate;
     }
 
     @PostMapping
     public ResponseEntity<RestaurantResponse> create(@Valid @RequestBody RestaurantRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(restaurantService.create(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(delegate.create(request));
     }
 
     @GetMapping
     public ResponseEntity<Page<RestaurantResponse>> listActive(
             @RequestParam(value = "name", required = false) String nameFilter,
             @PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(restaurantService.listActive(nameFilter, pageable));
+
+        return ResponseEntity.ok(delegate.listActive(nameFilter, pageable));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<RestaurantResponse> getById(@PathVariable("id") UUID id) {
-        return ResponseEntity.ok(restaurantService.getById(id));
+        return ResponseEntity.ok(delegate.getById(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<RestaurantResponse> update(
             @PathVariable("id") UUID id,
             @Valid @RequestBody RestaurantRequest request) {
-        return ResponseEntity.ok(restaurantService.update(id, request));
+
+        return ResponseEntity.ok(delegate.update(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
-        restaurantService.delete(id);
+        delegate.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
